@@ -351,6 +351,14 @@ window.closeFormModal = function() {
 }
 
 window.startDocumentRegistration = function() {
+    const requiredFields = ['f-fecha', 'f-vend', 'f-tipo', 'f-bod', 'f-lp', 'f-cond', 'f-doc-facturar', 'f-ter'];
+    for(let id of requiredFields) {
+        if(!document.getElementById(id).value.trim()) {
+            alert("Por favor, complete todos los campos (incluyendo el Tercero) antes de iniciar el registro.");
+            return;
+        }
+    }
+
     currentDocument = {
         type: formType,
         consecutive: document.getElementById('f-doc').value,
@@ -426,7 +434,7 @@ window.renderDocumentView = function() {
                 <i class="ph ph-arrow-left arrow-regresar" onclick="renderHome()"></i>
             </div>
             <div class="right-actions">
-                <button class="btn btn-primary" onclick="renderSummary()">Siguiente <i class="ph ph-arrow-right"></i></button>
+                <button class="btn btn-primary" onclick="goToSummary()">Siguiente <i class="ph ph-arrow-right"></i></button>
             </div>
         </div>
     `;
@@ -437,6 +445,14 @@ window.renderDocumentView = function() {
         searchInput.addEventListener('change', handleBarcodeScan);
         setTimeout(() => searchInput.focus(), 100);
     }
+}
+
+window.goToSummary = function() {
+    if (currentDocument.items.length === 0) {
+        alert("Debe agregar al menos una referencia antes de pasar a la valorización.");
+        return;
+    }
+    renderSummary();
 }
 
 // --- Interactive Data Entry Flow ---
@@ -535,11 +551,14 @@ window.renderSummary = function() {
     const base = subtotal - dctoGlobalMonto;
     
     let iva = 0;
+    let ivaOriginal = 0;
     if (currentDocument.documentoFacturar === 'Factura electrónica') {
         iva = base * 0.19;
+        ivaOriginal = subtotal * 0.19;
     }
     
     const neto = base + iva;
+    const netoOriginal = subtotal + ivaOriginal;
 
     const isPED = currentDocument.type === 'PED';
 
@@ -564,6 +583,14 @@ window.renderSummary = function() {
             </div>
 
             <div class="summary-row"><span>IVA (19%):</span><span>${fmt(iva)}</span></div>
+            
+            ${currentDocument.globalDiscount > 0 ? `
+            <div class="summary-row" style="color: var(--text-muted); font-size: 0.95rem;">
+                <span>Total (Sin Dcto Global):</span>
+                <span style="text-decoration: line-through;">${fmt(netoOriginal)}</span>
+            </div>
+            ` : ''}
+            
             <div class="summary-row large"><span>Valor Neto:</span><span>${fmt(neto)}</span></div>
         </div>
 
