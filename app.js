@@ -408,10 +408,11 @@ window.renderDocumentView = function() {
                         <th>Precio lista</th>
                         <th>Dcto</th>
                         <th>Subtotal</th>
+                        <th></th>
                     </tr>
                 </thead>
                 <tbody>
-                    ${currentDocument.items.length === 0 ? '<tr><td colspan="6" style="text-align:center; color: var(--text-muted);">Aún no hay referencias agregadas</td></tr>' : ''}
+                    ${currentDocument.items.length === 0 ? '<tr><td colspan="7" style="text-align:center; color: var(--text-muted);">Aún no hay referencias agregadas</td></tr>' : ''}
                     ${currentDocument.items.map((item, i) => {
                         const sub = item.qty * item.price * (1 - item.discount/100);
                         const fmt = (num) => '$' + Math.round(num).toLocaleString('es-CO');
@@ -423,6 +424,11 @@ window.renderDocumentView = function() {
                             <td>${fmt(item.price)}</td>
                             <td>${item.discount}%</td>
                             <td>${fmt(sub)}</td>
+                            <td style="text-align:center;">
+                                <button class="icon-btn" style="color:#ef4444;" title="Eliminar" onclick="removeReference(${i})">
+                                    <i class="ph ph-trash"></i>
+                                </button>
+                            </td>
                         </tr>
                     `}).join('')}
                 </tbody>
@@ -444,6 +450,13 @@ window.renderDocumentView = function() {
     if(searchInput) {
         searchInput.addEventListener('change', handleBarcodeScan);
         setTimeout(() => searchInput.focus(), 100);
+    }
+}
+
+window.removeReference = function(index) {
+    if(confirm("¿Estás seguro de que deseas retirar esta referencia?")) {
+        currentDocument.items.splice(index, 1);
+        renderDocumentView();
     }
 }
 
